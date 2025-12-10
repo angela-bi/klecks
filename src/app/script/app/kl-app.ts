@@ -1,4 +1,5 @@
 import { KL } from '../klecks/kl';
+import { BrushSettingService } from '../klecks/brushes-ui/brush-setting-service';
 import { BB } from '../bb/bb';
 import { showIframeModal } from '../klecks/ui/modals/show-iframe-modal';
 import { EmbedToolspaceTopRow } from '../embed/embed-toolspace-top-row';
@@ -145,6 +146,7 @@ export class KlApp {
     private readonly unloadWarningTrigger: UnloadWarningTrigger | undefined;
     private lastSavedHistoryIndex: number = 0;
     private readonly klHistory: KlHistory;
+    private brushSettingService: BrushSettingService | undefined;
 
     private updateLastSaved(): void {
         this.lastSavedHistoryIndex = this.klHistory.getTotalIndex();
@@ -257,8 +259,8 @@ export class KlApp {
             this.embed
                 ? 'left'
                 : LocalStorage.getItem('uiState')
-                  ? LocalStorage.getItem('uiState')
-                  : 'right'
+                    ? LocalStorage.getItem('uiState')
+                    : 'right'
         ) as TUiLayout;
         const projectStore = KL_INDEXED_DB.getIsAvailable() ? new ProjectStore() : undefined;
         this.rootEl = BB.el({
@@ -368,13 +370,13 @@ export class KlApp {
         };
 
         const sizeWatcher = (val: number) => {
-            brushSettingService.emitSize(val);
+            this.brushSettingService!.emitSize(val);
             if (this.easelBrush) {
                 this.easelBrush.setBrush({ radius: val });
             }
         };
 
-        const brushSettingService = new KL.BrushSettingService({
+        this.brushSettingService = new BrushSettingService({
             onSetColor: (color) => {
                 this.klColorSlider.setColor(color);
                 currentBrushUi.setColor(color);
@@ -645,7 +647,7 @@ export class KlApp {
                 eyedropper: new EaselEyedropper({
                     onPick: (p) => {
                         const color = this.klCanvas.getColorAt(p.x, p.y);
-                        brushSettingService.setColor(color);
+                        this.brushSettingService!.setColor(color);
                         return color;
                     },
                     onPickEnd: () => {
@@ -706,20 +708,20 @@ export class KlApp {
                                 angleRad: angleRad,
                                 fill: textToolSettings.fill
                                     ? {
-                                          color: {
-                                              ...this.klColorSlider.getColor(),
-                                              a: textToolSettings.fill.color.a,
-                                          },
-                                      }
+                                        color: {
+                                            ...this.klColorSlider.getColor(),
+                                            a: textToolSettings.fill.color.a,
+                                        },
+                                    }
                                     : undefined,
                                 stroke: textToolSettings.stroke
                                     ? {
-                                          ...textToolSettings.stroke,
-                                          color: {
-                                              ...this.klColorSlider.getSecondaryRGB(),
-                                              a: textToolSettings.stroke.color.a,
-                                          },
-                                      }
+                                        ...textToolSettings.stroke,
+                                        color: {
+                                            ...this.klColorSlider.getSecondaryRGB(),
+                                            a: textToolSettings.stroke.color.a,
+                                        },
+                                    }
                                     : undefined,
                             },
 
@@ -889,7 +891,7 @@ export class KlApp {
                                     setTimeout(() => {
                                         throw new Error(
                                             'keyboard-shortcut: failed to store browser storage, ' +
-                                                e,
+                                            e,
                                         );
                                     }, 0);
                                     this.statusOverlay.out(
@@ -1011,7 +1013,7 @@ export class KlApp {
                     this.klColorSlider.swapColors();
                 }
             },
-            onUp: (keyStr, event) => {},
+            onUp: (keyStr, event) => { },
         });
 
         const brushUiMap: {
@@ -1023,13 +1025,13 @@ export class KlApp {
                 klHistory: this.klHistory,
                 onSizeChange: sizeWatcher,
                 onScatterChange: (scatter: number) => {
-                    brushSettingService.emitScatter(scatter);
+                    this.brushSettingService!.emitScatter(scatter);
                 },
                 onOpacityChange: (opacity: number) => {
-                    brushSettingService.emitOpacity(opacity);
+                    this.brushSettingService!.emitOpacity(opacity);
                 },
                 onConfigChange: () => {
-                    brushSettingService.emitSliderConfig({
+                    this.brushSettingService!.emitSliderConfig({
                         sizeSlider: KL.BRUSHES_UI[currentBrushId].sizeSlider,
                         opacitySlider: KL.BRUSHES_UI[currentBrushId].opacitySlider,
                         scatterSlider: KL.BRUSHES_UI[currentBrushId].scatterSlider,
@@ -1081,7 +1083,7 @@ export class KlApp {
             },
             color: currentColor,
             onColorChange: (c) => {
-                brushSettingService.setColor(c);
+                this.brushSettingService!.setColor(c);
             },
         });
 
@@ -1101,7 +1103,7 @@ export class KlApp {
                 enabledTest: () => {
                     return KL.DIALOG_COUNTER.get() === 0 && !this.easel.getIsLocked();
                 },
-                brushSettingService,
+                brushSettingService: this.brushSettingService!,
             });
             this.rootEl.append(overlayToolspace.getElement());
         }, 0);
@@ -1273,7 +1275,7 @@ export class KlApp {
         const setBrushColor = (p_color: TRgb) => {
             currentColor = p_color;
             currentBrushUi.setColor(p_color);
-            brushSettingService.emitColor(p_color);
+            this.brushSettingService!.emitColor(p_color);
             this.mobileColorUi.setColor(p_color);
             this.klColorSlider.setIsEyedropping(false);
             this.mobileColorUi.setIsEyedropping(false);
@@ -1367,13 +1369,13 @@ export class KlApp {
                             setCurrentBrush(keyStr);
                             this.klColorSlider.setIsEyedropping(false);
                             this.mobileColorUi.setIsEyedropping(false);
-                            brushSettingService.emitSliderConfig({
+                            this.brushSettingService!.emitSliderConfig({
                                 sizeSlider: KL.BRUSHES_UI[keyStr].sizeSlider,
                                 opacitySlider: KL.BRUSHES_UI[keyStr].opacitySlider,
                                 scatterSlider: KL.BRUSHES_UI[keyStr].scatterSlider,
                             });
                             sizeWatcher(brushUiMap[keyStr].getSize());
-                            brushSettingService.emitOpacity(brushUiMap[keyStr].getOpacity());
+                            this.brushSettingService!.emitOpacity(brushUiMap[keyStr].getOpacity());
                             this.mobileBrushUi.setType(
                                 keyStr === 'eraserBrush' ? 'eraser' : 'brush',
                             );
@@ -1610,7 +1612,7 @@ export class KlApp {
                     this.easelProjectUpdater.update();
                     this.easel.resetOrFitTransform(true);
                 },
-                onCancel: () => {},
+                onCancel: () => { },
             });
         };
 
@@ -1620,7 +1622,7 @@ export class KlApp {
                 canvas: this.klCanvas.getCompleteCanvas(1),
                 fileName: BB.getDate() + KL_CONFIG.filenameBase + '.png',
                 title: BB.getDate() + KL_CONFIG.filenameBase + '.png',
-                callback: callback ? callback : () => {},
+                callback: callback ? callback : () => { },
             });
         };
 
@@ -1781,44 +1783,44 @@ export class KlApp {
         const fileUi = this.embed
             ? null
             : new KL.FileUi({
-                  klRootEl: this.rootEl,
-                  projectStore: projectStore,
-                  getProject: () => this.klCanvas.getProject(),
-                  exportType: exportType,
-                  onExportTypeChange: (type) => {
-                      exportType = type;
-                  },
-                  onFileSelect: (files, optionsStr) =>
-                      importHandler.handleFileSelect(files, optionsStr),
-                  onSaveImageToComputer: () => {
-                      applyUncommitted();
-                      this.saveToComputer.save();
-                  },
-                  onNewImage: showNewImageDialog,
-                  onShareImage: (callback) => {
-                      applyUncommitted();
-                      shareImage(callback);
-                  },
-                  onUpload: () => {
-                      // on upload
-                      applyUncommitted();
-                      KL.imgurUpload(
-                          this.klCanvas,
-                          this.rootEl,
-                          p.app && p.app.imgurKey ? p.app.imgurKey : '',
-                          () => this.updateLastSaved(),
-                      );
-                  },
-                  applyUncommitted: () => applyUncommitted(),
-                  onChangeShowSaveDialog: (b) => {
-                      this.saveToComputer.setShowSaveDialog(b);
-                  },
-                  klRecoveryManager,
-                  onOpenBrowserStorage,
-                  onStoredToBrowserStorage: () => {
-                      this.updateLastSaved();
-                  },
-              });
+                klRootEl: this.rootEl,
+                projectStore: projectStore,
+                getProject: () => this.klCanvas.getProject(),
+                exportType: exportType,
+                onExportTypeChange: (type) => {
+                    exportType = type;
+                },
+                onFileSelect: (files, optionsStr) =>
+                    importHandler.handleFileSelect(files, optionsStr),
+                onSaveImageToComputer: () => {
+                    applyUncommitted();
+                    this.saveToComputer.save();
+                },
+                onNewImage: showNewImageDialog,
+                onShareImage: (callback) => {
+                    applyUncommitted();
+                    shareImage(callback);
+                },
+                onUpload: () => {
+                    // on upload
+                    applyUncommitted();
+                    KL.imgurUpload(
+                        this.klCanvas,
+                        this.rootEl,
+                        p.app && p.app.imgurKey ? p.app.imgurKey : '',
+                        () => this.updateLastSaved(),
+                    );
+                },
+                applyUncommitted: () => applyUncommitted(),
+                onChangeShowSaveDialog: (b) => {
+                    this.saveToComputer.setShowSaveDialog(b);
+                },
+                klRecoveryManager,
+                onOpenBrowserStorage,
+                onStoredToBrowserStorage: () => {
+                    this.updateLastSaved();
+                },
+            });
 
         if (!this.embed && projectStore) {
             this.saveReminder = new SaveReminder({
@@ -2103,6 +2105,12 @@ export class KlApp {
                         });
                         currentBrushUi.endLine();
                     },
+                    onSetPenBrushSize: (size: number): void => {
+                        currentBrushUi.setSize(size);
+                    },
+                    onGetPenBrushSize: (): number => {
+                        return this.brushSettingService!.getSize();
+                    },
                 }),
                 writable: false,
             });
@@ -2125,7 +2133,7 @@ export class KlApp {
                 applyUncommitted: () => applyUncommitted(),
             },
             {
-                onColor: (rgb) => brushSettingService.setColor(rgb),
+                onColor: (rgb) => this.brushSettingService!.setColor(rgb),
             },
         );
 
@@ -2269,6 +2277,58 @@ export class KlApp {
     getPSD = async (): Promise<Blob> => {
         return await klCanvasToPsdBlob(this.klCanvas);
     };
+
+    /**
+     * Set the brush size dynamically.
+     * @param size The brush size (actual value, not display value). The valid range depends on the current brush type.
+     */
+    setBrushSize(size: number): void {
+        if (!this.brushSettingService) {
+            throw new Error('App not initialized');
+        }
+        this.brushSettingService.setSize(size);
+    }
+
+    /**
+     * Get the current brush size.
+     * @returns The current brush size (actual value, not display value).
+     */
+    getBrushSize(): number {
+        if (!this.brushSettingService) {
+            throw new Error('App not initialized');
+        }
+        return this.brushSettingService.getSize();
+    }
+
+    /**
+     * Set the brush opacity dynamically.
+     * @param opacity The opacity from 0–1 or 0–100 depending on your internal convention.
+     */
+    setBrushOpacity(opacity: number): void {
+        if (!this.brushSettingService) {
+            throw new Error('App not initialized');
+        }
+        this.brushSettingService.setOpacity(opacity);
+    }
+
+    /**
+     * Get the current brush opacity.
+     * @returns The current opacity.
+     */
+    getBrushOpacity(): number {
+        if (!this.brushSettingService) {
+            throw new Error('App not initialized');
+        }
+        return this.brushSettingService.getOpacity();
+    }
+
+    getColor(): TRgb {
+        if (!this.brushSettingService) {
+            throw new Error('App not initialized');
+        }
+        return this.brushSettingService.getColor();
+    }
+
 
     getProject(): TKlProject {
         return this.klCanvas.getProject();

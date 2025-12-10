@@ -1,5 +1,5 @@
 import { Embed, TEmbedParams, TReadPSD } from '../../main-embed';
-import { TKlProject, TKlProjectWithOptionalId } from '../../klecks/kl-types';
+import { TKlProject, TKlProjectWithOptionalId, TRgb } from '../../klecks/kl-types';
 import logoImg from 'url:/src/app/img/klecks-logo.png';
 import { getEmbedUrl } from './get-embed-url';
 import { initLANG, LANG } from '../../language/language';
@@ -99,6 +99,11 @@ export class EmbedWrapper {
 
             this.getPNG = () => this.instance!.getPNG();
             this.getPSD = () => this.instance!.getPSD();
+            this.setBrushSize = (size: number) => this.instance!.setBrushSize(size);
+            this.getBrushSize = () => this.instance!.getBrushSize();
+            this.setBrushOpacity = (size: number) => this.instance!.setBrushOpacity(size);
+            this.getBrushOpacity = () => this.instance!.getBrushOpacity();
+            this.getColor = () => this.instance!.getColor();
 
             if (this.project) {
                 this.instance.openProject(this.project);
@@ -109,10 +114,50 @@ export class EmbedWrapper {
             if (this.psds.length) {
                 this.instance.readPSDs(this.psds);
             }
+
+            // Set up postMessage listener for iframe communication
+            this.setupPostMessageListener();
         })();
 
         // needed for uploading. load here to prevent possible timeouts due to server cold-start
         loadAgPsd();
+    }
+
+    private setupPostMessageListener(): void {
+        window.addEventListener('message', (event: MessageEvent) => {
+            // Accept messages from any origin when embedded in iframe
+            // In production, you may want to validate event.origin for security
+            if (event.data && typeof event.data === 'object') {
+                if (event.data.type === 'setBrushSize' && typeof event.data.size === 'number') {
+                    if (this.setBrushSize) {
+                        try {
+                            this.setBrushSize(event.data.size);
+                        } catch (e) {
+                            console.error('Failed to set brush size:', e);
+                        }
+                    }
+                } else if (event.data.type === 'getBrushSize') {
+                    // Respond to getBrushSize requests
+                    if (this.getBrushSize && event.source) {
+                        try {
+                            const size = this.getBrushSize();
+                            (event.source as Window).postMessage(
+                                { type: 'brushSize', size },
+                                event.origin
+                            );
+                        } catch (e) {
+                            console.error('Failed to get brush size:', e);
+                            if (event.source) {
+                                (event.source as Window).postMessage(
+                                    { type: 'brushSizeError', error: String(e) },
+                                    event.origin
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        });
     }
 
     openProject(project: TKlProjectWithOptionalId) {
@@ -162,4 +207,19 @@ export class EmbedWrapper {
 
     getPNG: (() => Promise<Blob>) | undefined = undefined;
     getPSD: (() => Promise<Blob>) | undefined = undefined;
+    /**
+     * Set the brush size dynamically.
+     * @param size The brush size (actual value, not display value). The valid range depends on the current brush type.
+     * Note: The display value shown in the UI is typically 2x the actual value (e.g., display value 50 = actual value 25).
+     */
+    setBrushSize: ((size: number) => void) | undefined = undefined;
+    /**
+     * Get the current brush size.
+     * @returns The current brush size (actual value, not display value).
+     */
+    getBrushSize: (() => number) | undefined = undefined;
+    
+    setBrushOpacity: ((size: number) => void) | undefined = undefined;
+    getBrushOpacity: (() => number) | undefined = undefined;
+    getColor: (() => TRgb) | undefined = undefined;
 }

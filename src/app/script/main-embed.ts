@@ -1,6 +1,6 @@
 import './polyfills/polyfills';
 import { KlApp } from './app/kl-app';
-import { TKlProject, TKlProjectWithOptionalId } from './klecks/kl-types';
+import { TKlProject, TKlProjectWithOptionalId, TRgb } from './klecks/kl-types';
 import { klPsdToKlProject, readPsd } from './klecks/storage/psd';
 import { LANG } from './language/language';
 import { loadAgPsd, TAgPsd } from './klecks/storage/load-ag-psd';
@@ -116,6 +116,59 @@ export class Embed {
         }
         return await this.klApp.getPSD();
     }
+
+    /**
+     * Set the brush size dynamically.
+     * @param size The brush size (actual value, not display value). The valid range depends on the current brush type.
+     */
+    setBrushSize(size: number): void {
+        if (!this.klApp) {
+            throw new Error('App not initialized');
+        }
+        this.klApp.setBrushSize(size);
+    }
+
+    /**
+     * Get the current brush size.
+     * @returns The current brush size (actual value, not display value).
+     */
+    getBrushSize(): number {
+        if (!this.klApp) {
+            throw new Error('App not initialized');
+        }
+        return this.klApp.getBrushSize();
+    }
+
+    /**
+     * Set the brush opacity dynamically.
+     * @param opacity The opacity from 0–1 or 0–100 depending on your internal convention.
+     */
+    setBrushOpacity(opacity: number): void {
+        if (!this.klApp) {
+            throw new Error('App not initialized');
+        }
+        this.klApp.setBrushOpacity(opacity);
+    }
+
+    /**
+     * Get the current brush opacity.
+     * @returns The current opacity.
+     */
+    getBrushOpacity(): number {
+        if (!this.klApp) {
+            throw new Error('App not initialized');
+        }
+        return this.klApp.getBrushOpacity();
+    }
+
+    getColor(): TRgb {
+        if (!this.klApp) {
+            throw new Error('App not initialized');
+        }
+        return this.klApp.getColor();
+    }
+
+
 
     readPSDs(psds: TReadPSD[]) {
         if (psds.length === 0) {

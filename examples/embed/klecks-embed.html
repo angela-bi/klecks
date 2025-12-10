@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Klecks Embed</title>
+    <style>
+        html, body { 
+            margin: 0; 
+            padding: 0; 
+            overflow: hidden; 
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- 
+        This file should be placed in your React app's public folder.
+        The embed.js script will be loaded from the same public folder.
+        Make sure embed.js and all dist files are in your public folder.
+    -->
+    <script src="/embed.js"></script>
+    <script type="text/javascript">
+        const klecks = new Klecks({
+            onSubmit: async (onSuccess, onError) => {
+                onSuccess();
+            },
+        });
+
+        // Create a default project
+        klecks.openProject({
+            width: 1000,
+            height: 1000,
+            layers: [{
+                name: 'Background',
+                isVisible: true,
+                opacity: 1,
+                mixModeStr: 'source-over',
+                image: { fill: '#fff' },
+            }]
+        });
+
+        // Listen for messages from parent window
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'updateRatio') {
+                // Handle ratio updates if needed
+                console.log('Ratio updated:', event.data.payload.ratio);
+            }
+        });
+    </script>
+</body>
+</html>
+
+

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Klecks Embed</title>
+    <style>
+        html, body { 
+            margin: 0; 
+            padding: 0; 
+            overflow: hidden; 
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Load Klecks embed script -->
+    <script src="../../dist/embed.js"></script>
+    <script type="text/javascript">
+        // Initialize Klecks
+        const klecks = new Klecks({
+            onSubmit: async (onSuccess, onError) => {
+                // Handle submit if needed
+                onSuccess();
+            },
+        });
+
+        // Create a default project
+        klecks.openProject({
+            width: 1000,
+            height: 1000,
+            layers: [{
+                name: 'Background',
+                isVisible: true,
+                opacity: 1,
+                mixModeStr: 'source-over',
+                image: { fill: '#fff' },
+            }]
+        });
+
+        // Listen for ratio updates from parent
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'updateRatio') {
+                // Handle ratio updates if needed
+                // You can adjust canvas size here if needed
+            }
+        });
+    </script>
+</body>
+</html>
+
+

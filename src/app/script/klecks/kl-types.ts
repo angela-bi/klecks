@@ -212,6 +212,7 @@ export type TBrushUiInstance<GBrush> = {
     setOpacity: (opacity: number) => void;
     getScatter: () => number;
     setScatter: (opacity: number) => void;
+    getColor: () => TRgb;
     setColor: (c: TRgb) => void;
     setLayer: (layer: TKlCanvasLayer) => void;
     startLine: (x: number, y: number, p: number) => void;
