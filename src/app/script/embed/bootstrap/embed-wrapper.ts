@@ -7,6 +7,7 @@ import { THEME } from '../../theme/theme';
 import { loadAgPsd } from '../../klecks/storage/load-ag-psd';
 import { randomUuid } from '../../bb/base/base';
 import { createImage } from '../../bb/base/ui';
+import { TVector2D } from '../../bb/bb-types';
 
 // only one instance can exist
 let wrapperCreated = false;
@@ -103,6 +104,8 @@ export class EmbedWrapper {
             this.getBrushSize = () => this.instance!.getBrushSize();
             this.setBrushOpacity = (size: number) => this.instance!.setBrushOpacity(size);
             this.getBrushOpacity = () => this.instance!.getBrushOpacity();
+            this.setBrushScatter = (scatter: number) => this.instance!.setBrushScatter(scatter);
+            this.draw = (path: TVector2D[]) => this.instance!.draw(path);
             this.getColor = () => this.instance!.getColor();
 
             if (this.project) {
@@ -221,5 +224,7 @@ export class EmbedWrapper {
     
     setBrushOpacity: ((size: number) => void) | undefined = undefined;
     getBrushOpacity: (() => number) | undefined = undefined;
+    setBrushScatter: ((scatter: number) => void) | undefined = undefined;
+    draw: ((path: TVector2D[]) => void) | undefined = undefined
     getColor: (() => TRgb) | undefined = undefined;
 }

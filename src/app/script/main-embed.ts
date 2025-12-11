@@ -6,6 +6,7 @@ import { LANG } from './language/language';
 import { loadAgPsd, TAgPsd } from './klecks/storage/load-ag-psd';
 import { KL_CONFIG } from './klecks/kl-config';
 import { randomUuid } from './bb/base/base';
+import { TVector2D } from './bb/bb-types';
 
 export type TEmbedParams = {
     project?: TKlProject;
@@ -159,6 +160,20 @@ export class Embed {
             throw new Error('App not initialized');
         }
         return this.klApp.getBrushOpacity();
+    }
+
+    setBrushScatter(scatter: number): void {
+        if (!this.klApp) {
+            throw new Error('App not initialized');
+        }
+        this.klApp.setBrushScatter(scatter);
+    }
+
+    draw(path: TVector2D[]): void {
+        if (!this.klApp) {
+            throw new Error('App not initialized');
+        }
+        this.klApp.draw(path);
     }
 
     getColor(): TRgb {

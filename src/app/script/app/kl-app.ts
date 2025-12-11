@@ -147,6 +147,7 @@ export class KlApp {
     private lastSavedHistoryIndex: number = 0;
     private readonly klHistory: KlHistory;
     private brushSettingService: BrushSettingService | undefined;
+    private currentBrushUi: TBrushUiInstance<any> | undefined;
 
     private updateLastSaved(): void {
         this.lastSavedHistoryIndex = this.klHistory.getTotalIndex();
@@ -352,7 +353,6 @@ export class KlApp {
         };
 
         let currentColor = new BB.RGB(0, 0, 0);
-        let currentBrushUi: TBrushUiInstance<any>;
         let currentBrushId: string;
         let lastNonEraserBrushId: string;
         let currentLayer: TKlCanvasLayer = this.klCanvas.getLayer(
@@ -379,19 +379,19 @@ export class KlApp {
         this.brushSettingService = new BrushSettingService({
             onSetColor: (color) => {
                 this.klColorSlider.setColor(color);
-                currentBrushUi.setColor(color);
+                this.currentBrushUi!.setColor(color);
                 this.mobileColorUi.setColor(color);
                 currentColor = BB.copyObj(color);
             },
             onSetSize: (size) => {
-                currentBrushUi.setSize(size);
+                this.currentBrushUi!.setSize(size);
                 this.easelBrush.setBrush({ radius: size });
             },
             onSetOpacity: (opacity) => {
-                currentBrushUi.setOpacity(opacity);
+                this.currentBrushUi!.setOpacity(opacity);
             },
             onSetScatter: (scatter) => {
-                currentBrushUi.setScatter(scatter);
+                this.currentBrushUi!.setScatter(scatter);
             },
             onGetColor: () => this.klColorSlider.getColor(),
             onGetSize: () => brushUiMap[currentBrushId].getSize(),
@@ -418,22 +418,22 @@ export class KlApp {
         drawEventChain.setChainOut(((event: TDrawEvent) => {
             if (event.type === 'down') {
                 this.toolspace.style.pointerEvents = 'none';
-                currentBrushUi.startLine(event.x, event.y, event.pressure);
+                this.currentBrushUi!.startLine(event.x, event.y, event.pressure);
                 this.easelBrush.setLastDrawEvent({ x: event.x, y: event.y });
                 this.easel.requestRender();
             }
             if (event.type === 'move') {
-                currentBrushUi.goLine(event.x, event.y, event.pressure, event.isCoalesced);
+                this.currentBrushUi!.goLine(event.x, event.y, event.pressure, event.isCoalesced);
                 this.easelBrush.setLastDrawEvent({ x: event.x, y: event.y });
                 this.easel.requestRender();
             }
             if (event.type === 'up') {
                 this.toolspace.style.pointerEvents = '';
-                currentBrushUi.endLine();
+                this.currentBrushUi!.endLine();
                 this.easel.requestRender();
             }
             if (event.type === 'line') {
-                currentBrushUi.getBrush().drawLineSegment(event.x0, event.y0, event.x1, event.y1);
+                this.currentBrushUi!.getBrush().drawLineSegment(event.x0, event.y0, event.x1, event.y1);
                 this.easelBrush.setLastDrawEvent({ x: event.x1, y: event.y1 });
                 this.easel.requestRender();
             }
@@ -919,12 +919,12 @@ export class KlApp {
                 }
 
                 if (comboStr === 'sqbr_open') {
-                    currentBrushUi.decreaseSize(
+                    this.currentBrushUi!.decreaseSize(
                         Math.max(0.005, 0.03 / this.easel.getTransform().scale),
                     );
                 }
                 if (comboStr === 'sqbr_close') {
-                    currentBrushUi.increaseSize(
+                    this.currentBrushUi!.increaseSize(
                         Math.max(0.005, 0.03 / this.easel.getTransform().scale),
                     );
                 }
@@ -954,7 +954,7 @@ export class KlApp {
                 }
                 if (comboStr === 'shift+e') {
                     event.preventDefault();
-                    currentBrushUi.toggleEraser?.();
+                    this.currentBrushUi!.toggleEraser?.();
                 } else if (comboStr === 'e') {
                     event.preventDefault();
                     applyUncommitted();
@@ -1274,7 +1274,7 @@ export class KlApp {
 
         const setBrushColor = (p_color: TRgb) => {
             currentColor = p_color;
-            currentBrushUi.setColor(p_color);
+            this.currentBrushUi!.setColor(p_color);
             this.brushSettingService!.emitColor(p_color);
             this.mobileColorUi.setColor(p_color);
             this.klColorSlider.setIsEyedropping(false);
@@ -1313,9 +1313,9 @@ export class KlApp {
             }
 
             currentBrushId = brushId;
-            currentBrushUi = brushUiMap[brushId];
-            currentBrushUi.setColor(currentColor);
-            currentBrushUi.setLayer(currentLayer);
+            this.currentBrushUi = brushUiMap[brushId];
+            this.currentBrushUi!.setColor(currentColor);
+            this.currentBrushUi!.setLayer(currentLayer);
             this.easelBrush.setBrush({
                 type: currentBrushId === 'pixelBrush' ? 'pixel-square' : 'round',
             });
@@ -1325,7 +1325,7 @@ export class KlApp {
 
         const setCurrentLayer = (layer: TKlCanvasLayer) => {
             currentLayer = layer;
-            currentBrushUi.setLayer(currentLayer);
+            this.currentBrushUi!.setLayer(currentLayer);
             this.layerPreview.setLayer(currentLayer);
         };
 
@@ -1747,14 +1747,15 @@ export class KlApp {
                 return;
             }
             applyUncommitted();
+            const projectData = project.project;
             const layerIndex = this.klCanvas.reset({
-                projectId: project.project.projectId,
-                width: project.project.width,
-                height: project.project.height,
-                layers: project.project.layers.map((item) => {
+                projectId: projectData.projectId,
+                width: projectData.width,
+                height: projectData.height,
+                layers: projectData.layers.map((item) => {
                     let image = item.image;
                     if (!(image instanceof HTMLCanvasElement)) {
-                        image = BB.canvas(project.project.width, project.project.height);
+                        image = BB.canvas(projectData.width, projectData.height);
                         if (item.image instanceof HTMLImageElement) {
                             const ctx = BB.ctx(image);
                             ctx.drawImage(item.image, 0, 0);
@@ -2098,15 +2099,15 @@ export class KlApp {
                         }
                         path.forEach((p, index) => {
                             if (index === 0) {
-                                currentBrushUi.startLine(p.x, p.y, 1);
+                                this.currentBrushUi!.startLine(p.x, p.y, 1);
                             } else {
-                                currentBrushUi.goLine(p.x, p.y, 1);
+                                this.currentBrushUi!.goLine(p.x, p.y, 1);
                             }
                         });
-                        currentBrushUi.endLine();
+                        this.currentBrushUi!.endLine();
                     },
                     onSetPenBrushSize: (size: number): void => {
-                        currentBrushUi.setSize(size);
+                        this.currentBrushUi!.setSize(size);
                     },
                     onGetPenBrushSize: (): number => {
                         return this.brushSettingService!.getSize();
@@ -2321,6 +2322,36 @@ export class KlApp {
         }
         return this.brushSettingService.getOpacity();
     }
+
+    setBrushScatter(scatter: number): void {
+        if (!this.brushSettingService) {
+            throw new Error('App not initialized');
+        }
+        this.brushSettingService.setScatter(scatter);
+    }
+
+    draw(path: { x: number; y: number; pressure?: number }[]): void {
+        if (!path || path.length === 0) return;
+        if (!this.currentBrushUi) {
+            throw new Error('Brush not initialized');
+        }
+
+        console.log('inside kl-app draw function')
+    
+        const brush = this.currentBrushUi;
+        path.forEach((p, index) => {
+            const pressure = p.pressure ?? 1;
+    
+            if (index === 0) {
+                brush.startLine(p.x, p.y, pressure);
+            } else {
+                brush.goLine(p.x, p.y, pressure);
+            }
+        });
+    
+        brush.endLine();
+    }    
+    
 
     getColor(): TRgb {
         if (!this.brushSettingService) {
