@@ -106,7 +106,9 @@ export class EmbedWrapper {
             this.getBrushOpacity = () => this.instance!.getBrushOpacity();
             this.setBrushScatter = (scatter: number) => this.instance!.setBrushScatter(scatter);
             this.draw = (path: TVector2D[]) => this.instance!.draw(path);
+            this.clearLayer = () => this.instance!.clearLayer();
             this.getColor = () => this.instance!.getColor();
+            this.hideToolSpace = () => this.instance!.hideToolSpace();
 
             if (this.project) {
                 this.instance.openProject(this.project);
@@ -226,5 +228,7 @@ export class EmbedWrapper {
     getBrushOpacity: (() => number) | undefined = undefined;
     setBrushScatter: ((scatter: number) => void) | undefined = undefined;
     draw: ((path: TVector2D[]) => void) | undefined = undefined
+    clearLayer: (() => void) | undefined = undefined;
     getColor: (() => TRgb) | undefined = undefined;
+    hideToolSpace: (() => void) | undefined = undefined;
 }

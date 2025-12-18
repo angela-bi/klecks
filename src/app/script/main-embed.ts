@@ -176,6 +176,13 @@ export class Embed {
         this.klApp.draw(path);
     }
 
+    clearLayer(): void {
+        if (!this.klApp) {
+            throw new Error('App not initialized');
+        }
+        this.klApp.clearLayer();
+    }
+
     getColor(): TRgb {
         if (!this.klApp) {
             throw new Error('App not initialized');
@@ -183,6 +190,12 @@ export class Embed {
         return this.klApp.getColor();
     }
 
+    hideToolSpace(): void {
+        if (!this.klApp) {
+            throw new Error('App not initialized');
+        }
+        return this.klApp.hideToolspace();
+    }
 
 
     readPSDs(psds: TReadPSD[]) {

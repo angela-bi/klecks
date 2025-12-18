@@ -2335,8 +2335,6 @@ export class KlApp {
         if (!this.currentBrushUi) {
             throw new Error('Brush not initialized');
         }
-
-        console.log('inside kl-app draw function')
     
         const brush = this.currentBrushUi;
         path.forEach((p, index) => {
@@ -2350,8 +2348,29 @@ export class KlApp {
         });
     
         brush.endLine();
-    }    
+    }   
     
+    clearLayer = () => {
+        // this.klCanvas.applyUncommitted();
+        let currentLayer: TKlCanvasLayer = this.klCanvas.getLayer(
+            this.klCanvas.getLayerCount() - 1,
+        );
+        const layerIndex = currentLayer.index;
+        this.klCanvas.eraseLayer({
+            layerIndex
+        });
+        // Fill with white background after erasing
+        this.klCanvas.layerFill(
+            layerIndex,
+            new BB.RGB(255, 255, 255),
+        );
+            // this.statusOverlay.out(
+            //     this.klCanvas.getSelection()
+            //         ? LANG('cleared-selected-area')
+            //         : LANG('cleared-layer'),
+            //     true,
+            // );
+    };
 
     getColor(): TRgb {
         if (!this.brushSettingService) {
@@ -2379,5 +2398,22 @@ export class KlApp {
 
     isDrawing(): boolean {
         return this.lineSanitizer.getIsDrawing() || this.easel.getIsLocked();
+    }
+
+    hideToolspace(): void {
+        this.mobileUi.setToolspaceIsOpen(false);
+        this.toolspace.style.display = 'none';
+        if (this.uiLayout === 'left') {
+            css(this.easel.getElement(), {
+                left: '0',
+            });
+        } else {
+            css(this.easel.getElement(), {
+                left: '0',
+            });
+        }
+        this.easel.setSize(Math.max(0, this.uiWidth), this.uiHeight);
+        this.statusOverlay.setWide(true);
+        this.mobileUi.update();
     }
 }
