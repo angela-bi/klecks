@@ -83,6 +83,10 @@ export const eraserBrushUi = (function () {
                 },
             });
 
+            // Hide sliders
+            sizeSlider.getElement().style.display = 'none';
+            opacitySlider.getElement().style.display = 'none';
+
             const pressureSizeToggle = createPenPressureToggle(true, function (b) {
                 brush.sizePressure(b);
             });

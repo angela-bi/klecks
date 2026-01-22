@@ -88,6 +88,10 @@ export const chemyBrushUi = (function () {
                 },
             });
 
+            // Hide sliders
+            sizeSlider.getElement().style.display = 'none';
+            opacitySlider.getElement().style.display = 'none';
+
             css(opacitySlider.getElement(), {
                 marginTop: '10px',
             });

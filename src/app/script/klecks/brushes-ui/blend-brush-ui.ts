@@ -90,6 +90,11 @@ export const blendBrushUi = (function () {
             });
             blendingSlider.getElement().style.marginTop = '10px';
 
+            // Hide sliders
+            sizeSlider.getElement().style.display = 'none';
+            opacitySlider.getElement().style.display = 'none';
+            blendingSlider.getElement().style.display = 'none';
+
             const pressureSizeToggle = createPenPressureToggle(true, function (b) {
                 brush.setSizePressure(b);
             });

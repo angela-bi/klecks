@@ -111,6 +111,10 @@ export const smudgeBrushUi = (function () {
                 },
             });
 
+            // Hide sliders
+            sizeSlider.getElement().style.display = 'none';
+            opacitySlider.getElement().style.display = 'none';
+
             const pressureSizeToggle = createPenPressureToggle(false, function (b) {
                 brush.sizePressure(b);
             });

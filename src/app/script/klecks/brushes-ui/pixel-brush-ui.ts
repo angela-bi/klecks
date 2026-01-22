@@ -113,6 +113,10 @@ export const pixelBrushUi = (function () {
                 },
             });
 
+            // Hide sliders
+            sizeSlider.getElement().style.display = 'none';
+            opacitySlider.getElement().style.display = 'none';
+
             const pressureSizeToggle = createPenPressureToggle(true, function (b) {
                 brush.sizePressure(b);
             });

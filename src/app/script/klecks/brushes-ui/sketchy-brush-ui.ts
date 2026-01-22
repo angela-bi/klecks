@@ -102,6 +102,11 @@ export const sketchyBrushUi = (function () {
                     brush.setScale(val);
                 },
             });
+            // Hide sliders
+            sizeSlider.getElement().style.display = 'none';
+            opacitySlider.getElement().style.display = 'none';
+            blendSlider.getElement().style.display = 'none';
+            scaleSlider.getElement().style.display = 'none';
             opacitySlider.getElement().style.marginTop = '10px';
             blendSlider.getElement().style.marginTop = '10px';
             scaleSlider.getElement().style.marginTop = '10px';
