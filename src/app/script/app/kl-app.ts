@@ -2271,6 +2271,29 @@ export class KlApp {
         this.statusOverlay.out(msg);
     }
 
+    /**
+     * Get the complete canvas as an HTMLCanvasElement.
+     * @param scaleFactor Optional scale factor (default: 1). Use 1 for original size.
+     * @returns The canvas element containing the complete drawing.
+     */
+    getCanvas(scaleFactor: number = 1): HTMLCanvasElement {
+        return this.klCanvas.getCompleteCanvas(scaleFactor);
+    }
+
+    /**
+     * Get the complete canvas as a data URL string.
+     * @param format Optional image format (default: 'image/png').
+     * @param quality Optional quality for JPEG (0-1, default: 0.92).
+     * @returns A data URL string that can be used in img src or downloaded.
+     */
+    getCanvasDataURL(format: string = 'image/png', quality?: number): string {
+        const canvas = this.klCanvas.getCompleteCanvas(1);
+        if (format === 'image/jpeg' && quality !== undefined) {
+            return canvas.toDataURL(format, quality);
+        }
+        return canvas.toDataURL(format);
+    }
+
     async getPNG(): Promise<Blob> {
         return await canvasToBlob(this.klCanvas.getCompleteCanvas(1), 'image/png');
     }
@@ -2321,6 +2344,28 @@ export class KlApp {
             throw new Error('App not initialized');
         }
         return this.brushSettingService.getOpacity();
+    }
+
+    /**
+     * Set the brush color dynamically.
+     * @param color The color as TRgb object.
+     */
+    setBrushColor(color: TRgb): void {
+        if (!this.brushSettingService) {
+            throw new Error('App not initialized');
+        }
+        this.brushSettingService.setColor(color);
+    }
+
+    /**
+     * Get the current brush color.
+     * @returns The current color.
+     */
+    getBrushColor(): TRgb {
+        if (!this.brushSettingService) {
+            throw new Error('App not initialized');
+        }
+        return this.brushSettingService.getColor();
     }
 
     setBrushScatter(scatter: number): void {
@@ -2400,6 +2445,29 @@ export class KlApp {
         return this.lineSanitizer.getIsDrawing() || this.easel.getIsLocked();
     }
 
+    /**
+     * Show the toolspace/toolbar.
+     */
+    showToolspace(): void {
+        this.mobileUi.setToolspaceIsOpen(true);
+        if (this.uiLayout === 'left') {
+            css(this.easel.getElement(), {
+                left: '271px',
+            });
+        } else {
+            css(this.easel.getElement(), {
+                left: '0',
+            });
+        }
+        this.toolspace.style.display = 'block';
+        this.easel.setSize(Math.max(0, this.uiWidth - this.toolWidth), this.uiHeight);
+        this.statusOverlay.setWide(false);
+        this.mobileUi.update();
+    }
+
+    /**
+     * Hide the toolspace/toolbar.
+     */
     hideToolspace(): void {
         this.mobileUi.setToolspaceIsOpen(false);
         this.toolspace.style.display = 'none';

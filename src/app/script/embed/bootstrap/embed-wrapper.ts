@@ -98,16 +98,23 @@ export class EmbedWrapper {
             const mainEmbed = await import('../../main-embed');
             this.instance = new mainEmbed.Embed(p);
 
+            this.getCanvas = (scaleFactor?: number) => this.instance!.getCanvas(scaleFactor);
+            this.getCanvasDataURL = (format?: string, quality?: number) => this.instance!.getCanvasDataURL(format, quality);
             this.getPNG = () => this.instance!.getPNG();
             this.getPSD = () => this.instance!.getPSD();
+            this.readPSD = (blob: Blob) => this.instance!.readPSD(blob);
+            this.openPSD = (blob: Blob) => this.instance!.openPSD(blob);
             this.setBrushSize = (size: number) => this.instance!.setBrushSize(size);
             this.getBrushSize = () => this.instance!.getBrushSize();
             this.setBrushOpacity = (size: number) => this.instance!.setBrushOpacity(size);
             this.getBrushOpacity = () => this.instance!.getBrushOpacity();
+            this.setBrushColor = (color: TRgb) => this.instance!.setBrushColor(color);
+            this.getBrushColor = () => this.instance!.getBrushColor();
             this.setBrushScatter = (scatter: number) => this.instance!.setBrushScatter(scatter);
             this.draw = (path: TVector2D[]) => this.instance!.draw(path);
             this.clearLayer = () => this.instance!.clearLayer();
             this.getColor = () => this.instance!.getColor();
+            this.showToolSpace = () => this.instance!.showToolSpace();
             this.hideToolSpace = () => this.instance!.hideToolSpace();
 
             if (this.project) {
@@ -189,29 +196,34 @@ export class EmbedWrapper {
         }
     }
 
-    async readPSD(blob: Blob) {
-        return new Promise((resolve, reject) => {
-            const item: TReadPSD = {
-                blob,
-                callback: (loadedProject: TKlProject | null) => {
-                    this.psds.splice(this.psds.indexOf(item), 1);
-                    if (loadedProject) {
-                        resolve(loadedProject);
-                    } else {
-                        reject();
-                    }
-                },
-            };
-            if (this.instance) {
-                this.instance.readPSDs([item]);
-            } else {
-                this.psds.push(item);
-            }
-        });
-    }
 
+    /**
+     * Get the complete canvas as an HTMLCanvasElement.
+     * @param scaleFactor Optional scale factor (default: 1). Use 1 for original size.
+     * @returns The canvas element containing the complete drawing.
+     */
+    getCanvas: ((scaleFactor?: number) => HTMLCanvasElement) | undefined = undefined;
+    /**
+     * Get the complete canvas as a data URL string.
+     * @param format Optional image format (default: 'image/png').
+     * @param quality Optional quality for JPEG (0-1, default: 0.92).
+     * @returns A data URL string that can be used in img src or downloaded.
+     */
+    getCanvasDataURL: ((format?: string, quality?: number) => string) | undefined = undefined;
     getPNG: (() => Promise<Blob>) | undefined = undefined;
     getPSD: (() => Promise<Blob>) | undefined = undefined;
+    /**
+     * Read a PSD file and return the project.
+     * @param blob The PSD file as a Blob.
+     * @returns A Promise that resolves to the loaded project, or rejects if loading fails.
+     */
+    readPSD: ((blob: Blob) => Promise<TKlProject>) | undefined = undefined;
+    /**
+     * Read a PSD file and automatically open it as a new project.
+     * @param blob The PSD file as a Blob.
+     * @returns A Promise that resolves when the PSD is loaded and opened.
+     */
+    openPSD: ((blob: Blob) => Promise<void>) | undefined = undefined;
     /**
      * Set the brush size dynamically.
      * @param size The brush size (actual value, not display value). The valid range depends on the current brush type.
@@ -226,9 +238,12 @@ export class EmbedWrapper {
     
     setBrushOpacity: ((size: number) => void) | undefined = undefined;
     getBrushOpacity: (() => number) | undefined = undefined;
+    setBrushColor: ((color: TRgb) => void) | undefined = undefined;
+    getBrushColor: (() => TRgb) | undefined = undefined;
     setBrushScatter: ((scatter: number) => void) | undefined = undefined;
     draw: ((path: TVector2D[]) => void) | undefined = undefined
     clearLayer: (() => void) | undefined = undefined;
     getColor: (() => TRgb) | undefined = undefined;
+    showToolSpace: (() => void) | undefined = undefined;
     hideToolSpace: (() => void) | undefined = undefined;
 }

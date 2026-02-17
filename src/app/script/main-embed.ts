@@ -104,6 +104,31 @@ export class Embed {
         }
     }
 
+    /**
+     * Get the complete canvas as an HTMLCanvasElement.
+     * @param scaleFactor Optional scale factor (default: 1). Use 1 for original size.
+     * @returns The canvas element containing the complete drawing.
+     */
+    getCanvas(scaleFactor: number = 1): HTMLCanvasElement {
+        if (!this.klApp) {
+            throw new Error('App not initialized');
+        }
+        return this.klApp.getCanvas(scaleFactor);
+    }
+
+    /**
+     * Get the complete canvas as a data URL string.
+     * @param format Optional image format (default: 'image/png').
+     * @param quality Optional quality for JPEG (0-1, default: 0.92).
+     * @returns A data URL string that can be used in img src or downloaded.
+     */
+    getCanvasDataURL(format: string = 'image/png', quality?: number): string {
+        if (!this.klApp) {
+            throw new Error('App not initialized');
+        }
+        return this.klApp.getCanvasDataURL(format, quality);
+    }
+
     async getPNG(): Promise<Blob> {
         if (!this.klApp) {
             throw new Error('App not initialized');
@@ -162,6 +187,28 @@ export class Embed {
         return this.klApp.getBrushOpacity();
     }
 
+    /**
+     * Set the brush color dynamically.
+     * @param color The color as TRgb object.
+     */
+    setBrushColor(color: TRgb): void {
+        if (!this.klApp) {
+            throw new Error('App not initialized');
+        }
+        this.klApp.setBrushColor(color);
+    }
+
+    /**
+     * Get the current brush color.
+     * @returns The current color.
+     */
+    getBrushColor(): TRgb {
+        if (!this.klApp) {
+            throw new Error('App not initialized');
+        }
+        return this.klApp.getBrushColor();
+    }
+
     setBrushScatter(scatter: number): void {
         if (!this.klApp) {
             throw new Error('App not initialized');
@@ -190,11 +237,24 @@ export class Embed {
         return this.klApp.getColor();
     }
 
+    /**
+     * Show the toolspace/toolbar.
+     */
+    showToolSpace(): void {
+        if (!this.klApp) {
+            throw new Error('App not initialized');
+        }
+        this.klApp.showToolspace();
+    }
+
+    /**
+     * Hide the toolspace/toolbar.
+     */
     hideToolSpace(): void {
         if (!this.klApp) {
             throw new Error('App not initialized');
         }
-        return this.klApp.hideToolspace();
+        this.klApp.hideToolspace();
     }
 
 
@@ -234,6 +294,41 @@ export class Embed {
             });
         } else {
             psds.forEach(readItem);
+        }
+    }
+
+    /**
+     * Read a PSD file and return the project.
+     * @param blob The PSD file as a Blob.
+     * @returns A Promise that resolves to the loaded project, or rejects if loading fails.
+     */
+    async readPSD(blob: Blob): Promise<TKlProject> {
+        return new Promise((resolve, reject) => {
+            const item: TReadPSD = {
+                blob,
+                callback: (loadedProject: TKlProject | null) => {
+                    if (loadedProject) {
+                        resolve(loadedProject);
+                    } else {
+                        reject(new Error('Failed to load PSD file'));
+                    }
+                },
+            };
+            this.readPSDs([item]);
+        });
+    }
+
+    /**
+     * Read a PSD file and automatically open it as a new project.
+     * @param blob The PSD file as a Blob.
+     * @returns A Promise that resolves when the PSD is loaded and opened.
+     */
+    async openPSD(blob: Blob): Promise<void> {
+        try {
+            const project = await this.readPSD(blob);
+            this.openProject(project);
+        } catch (error) {
+            throw new Error(`Failed to open PSD file: ${error}`);
         }
     }
 }
