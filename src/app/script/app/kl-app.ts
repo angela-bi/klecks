@@ -1016,11 +1016,16 @@ export class KlApp {
             onUp: (keyStr, event) => { },
         });
 
+        // Only show pen and eraser in the drawing UI; other brushes are hidden
+        const VISIBLE_BRUSH_IDS = ['penBrush', 'eraserBrush'];
+
         const brushUiMap: {
             [key: string]: any;
         } = {};
-        // create brush UIs
-        Object.entries(KL.BRUSHES_UI).forEach(([b, brushUi]) => {
+        // create brush UIs (only for visible brushes)
+        Object.entries(KL.BRUSHES_UI)
+            .filter(([b]) => VISIBLE_BRUSH_IDS.includes(b))
+            .forEach(([b, brushUi]) => {
             const ui = new (brushUi.Ui as any)({
                 klHistory: this.klHistory,
                 onSizeChange: sizeWatcher,
@@ -1395,7 +1400,7 @@ export class KlApp {
         });
         BB.append(brushDiv, [
             brushTabRow.getElement(),
-            ...Object.entries(KL.BRUSHES_UI).map(([b]) => brushUiMap[b].getElement()),
+            ...Object.keys(brushUiMap).map((b) => brushUiMap[b].getElement()),
         ]);
 
         const handUi = new KL.HandUi({
