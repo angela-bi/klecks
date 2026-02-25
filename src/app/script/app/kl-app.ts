@@ -148,6 +148,7 @@ export class KlApp {
     private readonly klHistory: KlHistory;
     private brushSettingService: BrushSettingService | undefined;
     private currentBrushUi: TBrushUiInstance<any> | undefined;
+    private currentBrushId: string = 'penBrush';
 
     private updateLastSaved(): void {
         this.lastSavedHistoryIndex = this.klHistory.getTotalIndex();
@@ -1318,6 +1319,7 @@ export class KlApp {
             }
 
             currentBrushId = brushId;
+            this.currentBrushId = brushId;
             this.currentBrushUi = brushUiMap[brushId];
             this.currentBrushUi!.setColor(currentColor);
             this.currentBrushUi!.setLayer(currentLayer);
@@ -2315,6 +2317,9 @@ export class KlApp {
         if (!this.brushSettingService) {
             throw new Error('App not initialized');
         }
+        if (this.currentBrushId !== 'penBrush') {
+            return;
+        }
         this.brushSettingService.setSize(size);
     }
 
@@ -2336,6 +2341,9 @@ export class KlApp {
     setBrushOpacity(opacity: number): void {
         if (!this.brushSettingService) {
             throw new Error('App not initialized');
+        }
+        if (this.currentBrushId !== 'penBrush') {
+            return;
         }
         this.brushSettingService.setOpacity(opacity);
     }
@@ -2376,6 +2384,9 @@ export class KlApp {
     setBrushScatter(scatter: number): void {
         if (!this.brushSettingService) {
             throw new Error('App not initialized');
+        }
+        if (this.currentBrushId !== 'penBrush') {
+            return;
         }
         this.brushSettingService.setScatter(scatter);
     }
